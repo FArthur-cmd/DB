@@ -696,3 +696,33 @@ select * from MoneyForFoodDifference;
 --Создать 2 триггера на любые таблицы БД. Логика работы обговаривается c семинаристом.
 --------------------------------------------------------------------------------------
 
+
+create or replace function EatDish() returns trigger as
+$$
+declare
+    dishID INTEGER default 0;
+BEGIN
+    dishID := new.DishID;
+
+    UPDATE CookedDish
+    SET counteaten = counteaten + 1
+    where Dish in (
+        Select Dish
+        from DishInStorage
+        WHERE Dish = dishID);
+
+    return new;
+END;
+$$
+    LANGUAGE plpgsql;
+
+create trigger GetNewConsumption
+    after insert on DishInConsumtion
+    for row execute procedure EatDish();
+
+SELECT * from CookedDish;
+SELECT * from Consumtions;
+
+INSERT INTO DishInConsumtion(consumtionid, dishid) VALUES
+(6, 2)
+
